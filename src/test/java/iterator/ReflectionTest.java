@@ -168,13 +168,23 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldInstantiateImmutableBean() throws Exception {
+    public void shouldInstantiateImmutableBeanWhenNewInstance() throws Exception {
         // given
         ImmutableBean expected = new ImmutableBean(FOO);
         // when
         ImmutableBean actual = Reflection.newInstance(ImmutableBean.class, FOO);
         // then
         assertThat(actual, is(expected));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowGivenWhenNoNoArgConstructorPresentGivenNoArgsWhenNewInstance() throws Exception {
+        Reflection.newInstance(ImmutableBean.class);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowGivenWhenOnlyNoArgConstructorGivenArgsWhenNewInstance() throws Exception {
+        Reflection.newInstance(TestBean.class, FOO);
     }
 
 }
