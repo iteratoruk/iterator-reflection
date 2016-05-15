@@ -187,4 +187,14 @@ public class ReflectionTest {
         Reflection.newInstance(TestBean.class, FOO);
     }
 
+    @Test
+    public void shouldReturnAnnotationMemberTypeGivenMemberNameWhenGetAnnotationMemberType() throws Exception {
+        assertThat(Reflection.getAnnotationMemberType(TestAnnotation.class, "someMember").getName(), is(String.class.getName()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowGivenNonExistentMemberNameWhenGetAnnotationMemberType() throws Exception {
+        Reflection.getAnnotationMemberType(TestAnnotation.class, "does not exist as a member");
+    }
+
 }

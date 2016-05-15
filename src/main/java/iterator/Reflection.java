@@ -37,6 +37,10 @@ public final class Reflection {
         return get(getAnnotationMemberDefaultCallback(annotationClass, memberName));
     }
 
+    public static <A extends Annotation> Class<?> getAnnotationMemberType(Class<A> annotationClass, String memberName) {
+        return get(getAnnotationMemberTypeCallback(annotationClass, memberName));
+    }
+
     public static <A extends Annotation, T> T getAnnotationMemberValue(A annotation, String memberName) {
         return get(getAnnotationMemberValueCallback(annotation, memberName));
     }
@@ -75,13 +79,17 @@ public final class Reflection {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T, A extends Annotation> Callback<T> getAnnotationMemberDefaultCallback(Class<A> annotationClass, String propertyName) {
-        return () -> (T) annotationClass.getDeclaredMethod(propertyName).getDefaultValue();
+    private static <T, A extends Annotation> Callback<T> getAnnotationMemberDefaultCallback(Class<A> annotationClass, String memberName) {
+        return () -> (T) annotationClass.getDeclaredMethod(memberName).getDefaultValue();
+    }
+
+    private static <A extends Annotation> Callback<Class<?>> getAnnotationMemberTypeCallback(Class<A> annotationClass, String memberName) {
+        return () -> annotationClass.getDeclaredMethod(memberName).getReturnType();
     }
 
     @SuppressWarnings("unchecked")
-    private static <T, A extends Annotation> Callback<T> getAnnotationMemberValueCallback(A annotation, String propertyName) {
-        return () -> (T) annotation.annotationType().getDeclaredMethod(propertyName).invoke(annotation);
+    private static <T, A extends Annotation> Callback<T> getAnnotationMemberValueCallback(A annotation, String memberName) {
+        return () -> (T) annotation.annotationType().getDeclaredMethod(memberName).invoke(annotation);
     }
 
     private static Callback<Field> getFieldCallback(Class<?> clazz, String fieldName) {
