@@ -6,16 +6,18 @@ import static org.apache.commons.lang3.builder.HashCodeBuilder.reflectionHashCod
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Test;
+import org.springframework.core.annotation.AnnotationUtils;
 
 public class ReflectionTest {
 
+    @TestAnnotation(someMember = BAZ)
     public static class TestBean {
 
         @TestAnnotation(someMember = BAR)
@@ -60,6 +62,8 @@ public class ReflectionTest {
     public static final String BAR = "bar";
 
     public static final String FOO = "foo";
+
+    public static final String BAZ = "baz";
 
     @Test
     public void shouldNotBeAbleToInstantiateViaReflection() throws Exception {
@@ -195,6 +199,21 @@ public class ReflectionTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowGivenNonExistentMemberNameWhenGetAnnotationMemberType() throws Exception {
         Reflection.getAnnotationMemberType(TestAnnotation.class, "does not exist as a member");
+    }
+
+    @Test
+    public void shouldReturnAnnotationWhenFindTypeAnnotation() throws Exception {
+        // given
+        TestAnnotation expected = AnnotationUtils.findAnnotation(TestBean.class, TestAnnotation.class);
+        // when
+        TestAnnotation actual = Reflection.findTypeAnnotation(TestBean.class, TestAnnotation.class);
+        // then
+        assertThat(actual, is(expected));
+    }
+
+    @Test
+    public void shouldReturnNullGivenNoAnnotationPresentWhenFindTypeAnnotation() throws Exception {
+        assertThat(Reflection.findTypeAnnotation(ImmutableBean.class, TestAnnotation.class), nullValue());
     }
 
 }

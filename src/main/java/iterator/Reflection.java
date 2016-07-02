@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.slf4j.Logger;
+import org.springframework.core.annotation.AnnotationUtils;
 
 public final class Reflection {
 
@@ -46,6 +47,10 @@ public final class Reflection {
     public static <A extends Annotation> A findFieldAnnotation(Class<?> clazz, String fieldName, Class<A> annotationClass) {
         Field f = findField(clazz, fieldName);
         return f != null ? f.getAnnotation(annotationClass) : null;
+    }
+
+    public static <A extends Annotation> A findTypeAnnotation(Class<?> clazz, Class<A> annotationClass) {
+        return AnnotationUtils.findAnnotation(clazz, annotationClass);
     }
 
     public static <A extends Annotation, T> T getAnnotationMemberDefault(Class<A> annotationClass, String memberName) {
