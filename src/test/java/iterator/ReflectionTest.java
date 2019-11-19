@@ -3,19 +3,18 @@ package iterator;
 
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.apache.commons.lang3.builder.HashCodeBuilder.reflectionHashCode;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.annotation.AnnotationUtils;
 
-public class ReflectionTest {
+class ReflectionTest {
 
     @TestAnnotation(someMember = BAZ)
     public static class TestBean {
@@ -59,14 +58,14 @@ public class ReflectionTest {
 
     }
 
-    public static final String BAR = "bar";
+    private static final String BAR = "bar";
 
-    public static final String FOO = "foo";
+    static final String FOO = "foo";
 
-    public static final String BAZ = "baz";
+    static final String BAZ = "baz";
 
     @Test
-    public void shouldNotBeAbleToInstantiateViaReflection() throws Exception {
+    void shouldNotBeAbleToInstantiateViaReflection() throws Exception {
         Constructor<Reflection> constructor = Reflection.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         try {
@@ -77,27 +76,29 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldReturnDefaultWhenGetAnnotationMemberDefault() throws Exception {
+    void shouldReturnDefaultWhenGetAnnotationMemberDefault() throws Exception {
         assertThat(Reflection.getAnnotationMemberDefault(TestAnnotation.class, "someMember"), is(FOO));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowGivenNonExistentMemberWhenGetAnnotationMemberDefault() throws Exception {
-        Reflection.getAnnotationMemberDefault(TestAnnotation.class, "does not exist");
+    @Test
+    void shouldThrowGivenNonExistentMemberWhenGetAnnotationMemberDefault() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Reflection.getAnnotationMemberDefault(TestAnnotation.class, "does not exist");
+        });
     }
 
     @Test
-    public void shouldReturnDefaultWhenFindAnnotationMemberDefault() throws Exception {
+    void shouldReturnDefaultWhenFindAnnotationMemberDefault() throws Exception {
         assertThat(Reflection.findAnnotationMemberDefault(TestAnnotation.class, "someMember"), is(FOO));
     }
 
     @Test
-    public void shouldReturnNullGivenNonExistentMemberWhenFindAnnotationMemberDefault() throws Exception {
+    void shouldReturnNullGivenNonExistentMemberWhenFindAnnotationMemberDefault() throws Exception {
         assertThat(Reflection.findAnnotationMemberDefault(TestAnnotation.class, "does not exist"), nullValue());
     }
 
     @Test
-    public void shouldReturnFieldWhenGetField() throws Exception {
+    void shouldReturnFieldWhenGetField() throws Exception {
         // given
         Field expected = TestBean.class.getDeclaredField("foo");
         // when
@@ -106,13 +107,15 @@ public class ReflectionTest {
         assertThat(actual, is(expected));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowGivenNonExistentFieldWhenGetField() throws Exception {
-        Reflection.getField(TestBean.class, "does not exist");
+    @Test
+    void shouldThrowGivenNonExistentFieldWhenGetField() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Reflection.getField(TestBean.class, "does not exist");
+        });
     }
 
     @Test
-    public void shouldReturnFieldWhenFindField() throws Exception {
+    void shouldReturnFieldWhenFindField() throws Exception {
         // given
         Field expected = TestBean.class.getDeclaredField("foo");
         // when
@@ -122,12 +125,12 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldReturnNullGivenNonExistentFieldWhenFindField() throws Exception {
+    void shouldReturnNullGivenNonExistentFieldWhenFindField() throws Exception {
         assertThat(Reflection.findField(TestBean.class, "does not exist"), nullValue());
     }
 
     @Test
-    public void shouldReturnAnnotationWhenGetFieldAnnotation() throws Exception {
+    void shouldReturnAnnotationWhenGetFieldAnnotation() throws Exception {
         // given
         TestAnnotation expected = TestBean.class.getDeclaredField("foo").getAnnotation(TestAnnotation.class);
         // when
@@ -137,7 +140,7 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldReturnAnnotationWhenFindFieldAnnotation() throws Exception {
+    void shouldReturnAnnotationWhenFindFieldAnnotation() throws Exception {
         // given
         TestAnnotation expected = TestBean.class.getDeclaredField("foo").getAnnotation(TestAnnotation.class);
         // when
@@ -147,7 +150,7 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldReturnAnnotationMemberValue() throws Exception {
+    void shouldReturnAnnotationMemberValue() throws Exception {
         // given
         TestAnnotation anno = TestBean.class.getDeclaredField("foo").getAnnotation(TestAnnotation.class);
         // when
@@ -157,12 +160,12 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldReturnNullGivenNonExistentFieldWhenFindFieldAnnotation() throws Exception {
+    void shouldReturnNullGivenNonExistentFieldWhenFindFieldAnnotation() throws Exception {
         assertThat(Reflection.findFieldAnnotation(TestBean.class, "does not exist", TestAnnotation.class), nullValue());
     }
 
     @Test
-    public void shouldInstantiateClassWithNoArgConstructor() throws Exception {
+    void shouldInstantiateClassWithNoArgConstructor() throws Exception {
         // given
         TestBean expected = new TestBean();
         // when
@@ -172,7 +175,7 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldInstantiateImmutableBeanWhenNewInstance() throws Exception {
+    void shouldInstantiateImmutableBeanWhenNewInstance() throws Exception {
         // given
         ImmutableBean expected = new ImmutableBean(FOO);
         // when
@@ -181,28 +184,34 @@ public class ReflectionTest {
         assertThat(actual, is(expected));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowGivenWhenNoNoArgConstructorPresentGivenNoArgsWhenNewInstance() throws Exception {
-        Reflection.newInstance(ImmutableBean.class);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowGivenWhenOnlyNoArgConstructorGivenArgsWhenNewInstance() throws Exception {
-        Reflection.newInstance(TestBean.class, FOO);
+    @Test
+    void shouldThrowGivenWhenNoNoArgConstructorPresentGivenNoArgsWhenNewInstance() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Reflection.newInstance(ImmutableBean.class);
+        });
     }
 
     @Test
-    public void shouldReturnAnnotationMemberTypeGivenMemberNameWhenGetAnnotationMemberType() throws Exception {
+    void shouldThrowGivenWhenOnlyNoArgConstructorGivenArgsWhenNewInstance() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Reflection.newInstance(TestBean.class, FOO);
+        });
+    }
+
+    @Test
+    void shouldReturnAnnotationMemberTypeGivenMemberNameWhenGetAnnotationMemberType() throws Exception {
         assertThat(Reflection.getAnnotationMemberType(TestAnnotation.class, "someMember").getName(), is(String.class.getName()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowGivenNonExistentMemberNameWhenGetAnnotationMemberType() throws Exception {
-        Reflection.getAnnotationMemberType(TestAnnotation.class, "does not exist as a member");
+    @Test
+    void shouldThrowGivenNonExistentMemberNameWhenGetAnnotationMemberType() throws Exception {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Reflection.getAnnotationMemberType(TestAnnotation.class, "does not exist as a member");
+        });
     }
 
     @Test
-    public void shouldReturnAnnotationWhenFindTypeAnnotation() throws Exception {
+    void shouldReturnAnnotationWhenFindTypeAnnotation() throws Exception {
         // given
         TestAnnotation expected = AnnotationUtils.findAnnotation(TestBean.class, TestAnnotation.class);
         // when
@@ -212,7 +221,7 @@ public class ReflectionTest {
     }
 
     @Test
-    public void shouldReturnNullGivenNoAnnotationPresentWhenFindTypeAnnotation() throws Exception {
+    void shouldReturnNullGivenNoAnnotationPresentWhenFindTypeAnnotation() throws Exception {
         assertThat(Reflection.findTypeAnnotation(ImmutableBean.class, TestAnnotation.class), nullValue());
     }
 
