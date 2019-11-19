@@ -80,9 +80,7 @@ public final class Reflection {
 
   public static <T> T newInstance(Class<T> clazz, Object... args) {
     try {
-      return args != null && args.length > 0
-          ? ConstructorUtils.invokeConstructor(clazz, args)
-          : clazz.newInstance();
+      return ConstructorUtils.invokeConstructor(clazz, args);
     } catch (Exception e) {
       throw new IllegalArgumentException(e);
     }
