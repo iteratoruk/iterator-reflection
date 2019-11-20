@@ -29,7 +29,7 @@ public final class Reflection {
   @FunctionalInterface
   interface Callback<T> {
 
-    T execute() throws Exception;
+    T execute() throws ReflectiveOperationException;
   }
 
   private static final Logger LOG = getLogger(Reflection.class);
