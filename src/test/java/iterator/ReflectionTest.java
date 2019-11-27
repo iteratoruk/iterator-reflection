@@ -240,6 +240,59 @@ class ReflectionTest {
   }
 
   @Test
+  void shouldSetFieldToValueGivenExistingFieldNameOnNonNullInstanceWhenSet() {
+    // given
+    ImmutableBean bean = new ImmutableBean("foo");
+    // when
+    Reflection.setField(bean, "foo", "bar");
+    // then
+    assertThat(bean.getFoo(), is("bar"));
+  }
+
+  @Test
+  void shouldSetFieldToNullGivenExistingFieldNameOnNonNullInstanceWhenSet() {
+    // given
+    ImmutableBean bean = new ImmutableBean("foo");
+    // when
+    Reflection.setField(bean, "foo", null);
+    // then
+    assertThat(bean.getFoo(), nullValue());
+  }
+
+  @Test
+  void shouldThrowGivenNonExistentFieldNameWhenSet() {
+    // given
+    ImmutableBean bean = new ImmutableBean("foo");
+    // then
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Reflection.setField(bean, "notAFieldOnThisClass", "foo");
+        });
+  }
+
+  @Test
+  void shouldThrowGivenNullInstanceWhenSet() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Reflection.setField(null, "foo", "bar");
+        });
+  }
+
+  @Test
+  void shouldThrowGivenNullFieldNameWhenSet() {
+    // given
+    ImmutableBean bean = new ImmutableBean("foo");
+    // then
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          Reflection.setField(bean, null, "bar");
+        });
+  }
+
+  @Test
   void shouldReturnNullGivenNoAnnotationPresentWhenFindTypeAnnotation() {
     assertThat(
         Reflection.findTypeAnnotation(ImmutableBean.class, TestAnnotation.class), nullValue());

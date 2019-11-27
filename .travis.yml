@@ -9,7 +9,7 @@ branches:
   - master
   - "/^iterator-reflection-[0-9]+\\.[0-9]+\\.[0-9]+/"
 after_success:
-- mvn clean test jacoco:report coveralls:report
+- mvn clean test jacoco:report
 - test "${TRAVIS_PULL_REQUEST}" == "false" && test "${TRAVIS_TAG}" != "" && mvn deploy
   --settings settings.xml
 env:

@@ -86,6 +86,17 @@ public final class Reflection {
     }
   }
 
+  public static <T> void setField(T instance, String fieldName, Object value) {
+    try {
+      Field f = findField(instance.getClass(), fieldName);
+      f.setAccessible(true);
+      f.set(instance, value);
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+          "Cannot set '" + fieldName + "' to '" + value + "' on " + instance);
+    }
+  }
+
   private static <T> T find(Callback<T> callback) {
     try {
       return callback.execute();
