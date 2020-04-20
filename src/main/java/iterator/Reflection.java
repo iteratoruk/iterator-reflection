@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.slf4j.Logger;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.ReflectionUtils;
 
 public final class Reflection {
 
@@ -78,6 +79,20 @@ public final class Reflection {
     return getField(clazz, fieldName).getAnnotation(annotationClass);
   }
 
+  @SuppressWarnings("unchecked")
+  public static <O, T> T getFieldValue(O instance, String fieldName) {
+    try {
+      Field f = findField(instance.getClass(), fieldName);
+      f.setAccessible(true);
+      return (T) f.get(instance);
+    } catch (Exception e) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Unable to retrieve value of field %s from instance %s", fieldName, instance),
+          e);
+    }
+  }
+
   public static <T> T newInstance(Class<T> clazz, Object... args) {
     try {
       return ConstructorUtils.invokeConstructor(clazz, args);
@@ -86,14 +101,20 @@ public final class Reflection {
     }
   }
 
+  /** @see #setFieldValue(Object, String, Object) */
+  @Deprecated(since = "2.2.6", forRemoval = true)
   public static <T> void setField(T instance, String fieldName, Object value) {
+    setFieldValue(instance, fieldName, value);
+  }
+
+  public static <T> void setFieldValue(T instance, String fieldName, Object value) {
     try {
       Field f = findField(instance.getClass(), fieldName);
       f.setAccessible(true);
       f.set(instance, value);
     } catch (Exception e) {
       throw new IllegalArgumentException(
-          "Cannot set '" + fieldName + "' to '" + value + "' on " + instance);
+          "Cannot set '" + fieldName + "' to '" + value + "' on " + instance, e);
     }
   }
 
@@ -132,7 +153,14 @@ public final class Reflection {
   }
 
   private static Callback<Field> getFieldCallback(Class<?> clazz, String fieldName) {
-    return () -> clazz.getDeclaredField(fieldName);
+    return () -> {
+      Field f = ReflectionUtils.findField(clazz, fieldName);
+      if (f == null) {
+        throw new NoSuchFieldException(
+            String.format("Could not locate field %s in class %s", fieldName, clazz));
+      }
+      return f;
+    };
   }
 
   private Reflection() {

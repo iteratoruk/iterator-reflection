@@ -3,7 +3,9 @@ package iterator;
 import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
 import static org.apache.commons.lang3.builder.HashCodeBuilder.reflectionHashCode;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Constructor;
@@ -30,6 +32,19 @@ class ReflectionTest {
     public int hashCode() {
       return reflectionHashCode(this);
     }
+
+    public String getFoo() {
+      return foo;
+    }
+
+    public void setFoo(String foo) {
+      this.foo = foo;
+    }
+  }
+
+  public static class ExtendedTestBean extends TestBean {
+
+    private String bar;
   }
 
   public static class ImmutableBean {
@@ -293,8 +308,51 @@ class ReflectionTest {
   }
 
   @Test
+  void shouldSetSuperclassFieldWhenSet() {
+    // given
+    ExtendedTestBean bean = new ExtendedTestBean();
+    // when
+    Reflection.setField(bean, "foo", "baz");
+    // then
+    assertThat(bean.getFoo(), is("baz"));
+  }
+
+  @Test
   void shouldReturnNullGivenNoAnnotationPresentWhenFindTypeAnnotation() {
     assertThat(
         Reflection.findTypeAnnotation(ImmutableBean.class, TestAnnotation.class), nullValue());
+  }
+
+  @Test
+  void shouldThrowGivenNullInstanceWhenGetFieldValue() {
+    assertThrows(IllegalArgumentException.class, () -> Reflection.getFieldValue(null, "foo"));
+  }
+
+  @Test
+  void shouldThrowGivenNonExistentFieldNameWhenGetFieldValue() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Reflection.getFieldValue(new ImmutableBean("bar"), "bar"));
+  }
+
+  @Test
+  void shouldReturnFieldValueOnInstanceWhenGetFieldValue() {
+    // given
+    ImmutableBean bean = new ImmutableBean("bar");
+    // when
+    String actual = Reflection.getFieldValue(bean, "foo");
+    // then
+    assertThat(actual, is("bar"));
+  }
+
+  @Test
+  void shouldReturnFieldValueFromSuperclassOfInstanceWhenGetFieldValue() {
+    // given
+    ExtendedTestBean bean = new ExtendedTestBean();
+    bean.setFoo("bar");
+    // when
+    String actual = Reflection.getFieldValue(bean, "foo");
+    // then
+    assertThat(actual, is("bar"));
   }
 }
